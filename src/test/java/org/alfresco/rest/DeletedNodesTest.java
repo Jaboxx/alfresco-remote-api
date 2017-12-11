@@ -481,10 +481,7 @@ public class DeletedNodesTest extends AbstractSingleNetworkSiteTest
         response = getAll(getDeletedNodeRenditionsUrl(contentNodeId), paging, params, 200);
         renditions = RestApiUtil.parseRestApiEntries(response.getJsonResponse(), Rendition.class);
         assertTrue(Ordering.natural().isOrdered(renditions));
-
-        // -ve - nodeId in the path parameter does not represent a file
-        getAll(getDeletedNodeRenditionsUrl(f1Id), paging, params, 404);
-
+        
         // -ve - nodeId in the path parameter does not exist
         getAll(getDeletedNodeRenditionsUrl(UUID.randomUUID().toString()), paging, params, 404);
 
@@ -492,6 +489,10 @@ public class DeletedNodesTest extends AbstractSingleNetworkSiteTest
         Document emptyDoc = createEmptyTextFile(f1Id, "d1.txt");
         getAll(getDeletedNodeRenditionsUrl(emptyDoc.getId()), paging, params, 404);
 
+        // -ve - nodeId in the path parameter does not represent a file
+        deleteNode(f1Id);
+        getAll(getDeletedNodeRenditionsUrl(f1Id), paging, params, 400);
+        
         // -ve - Invalid status value
         params.put("where", "(status='WRONG')");
         getAll(getDeletedNodeRenditionsUrl(contentNodeId), paging, params, 400);
@@ -507,10 +508,9 @@ public class DeletedNodesTest extends AbstractSingleNetworkSiteTest
         // -ve - Current user does not have permission for nodeId
         setRequestContext(user2);
         getAll(getDeletedNodeRenditionsUrl(contentNodeId), paging, params, 403);
-
-
-        setRequestContext(user1);
+        
         // Test get single node rendition
+        setRequestContext(user1);
         // -ve - nodeId in the path parameter does not exist
         getSingle(getDeletedNodeRenditionsUrl(UUID.randomUUID().toString()), "doclib", 404);
 
@@ -518,7 +518,7 @@ public class DeletedNodesTest extends AbstractSingleNetworkSiteTest
         getSingle(getNodeRenditionsUrl(contentNodeId), ("renditionId" + System.currentTimeMillis()), 404);
 
         // -ve - nodeId in the path parameter does not represent a file
-        getSingle(getDeletedNodeRenditionsUrl(f1Id), "doclib", 404);
+        getSingle(getDeletedNodeRenditionsUrl(f1Id), "doclib", 400);
 
         // -ve test - Authentication failed
         setRequestContext(null);

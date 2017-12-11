@@ -410,7 +410,6 @@ public class QuickShareLinksImpl implements QuickShareLinks, RecognizedParamsExt
 
             return TenantUtil.runAsSystemTenant(() ->
             {
-                String nodeId = nodeRef.getId();
                 Parameters params = getParamsWithCreatedStatus();
                 return renditions.getRendition(nodeRef, renditionId, params);
 
@@ -443,7 +442,6 @@ public class QuickShareLinksImpl implements QuickShareLinks, RecognizedParamsExt
 
             return TenantUtil.runAsSystemTenant(() ->
             {
-                String nodeId = nodeRef.getId();
                 Parameters params = getParamsWithCreatedStatus();
                 return renditions.getRenditions(nodeRef, params);
 

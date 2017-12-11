@@ -453,14 +453,6 @@ public class RenditionsImpl implements Renditions, ResourceLoaderAware
         return apiRendition;
     }
 
-    protected NodeRef validateSourceNode(String nodeId)
-    {
-        final NodeRef nodeRef = nodes.validateNode(nodeId);
-        // check if the node represents a file
-        isContentFile(nodeRef);
-        return nodeRef;
-    }
-
     public NodeRef validateNode(StoreRef storeRef, String nodeId)
     {
         if (nodeId == null)
