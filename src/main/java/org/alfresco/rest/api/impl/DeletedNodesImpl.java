@@ -202,7 +202,7 @@ public class DeletedNodesImpl implements DeletedNodes, RecognizedParamsExtractor
     }
 
     @Override
-    public BinaryResource readProperty(String archivedId, final String renditionId, Parameters parameters)
+    public BinaryResource readProperty(String archivedId, String renditionId, Parameters parameters)
     {
         // First check if the archived node is valid
         NodeRef validatedNodeRef = nodes.validateNode(StoreRef.STORE_REF_ARCHIVE_SPACESSTORE, archivedId);
@@ -220,7 +220,7 @@ public class DeletedNodesImpl implements DeletedNodes, RecognizedParamsExtractor
     @Override
     public Rendition getRendition(String archivedId, String renditionId, Parameters parameters)
     {
-        NodeRef nodeRef = nodes.validateNode(StoreRef.STORE_REF_ARCHIVE_SPACESSTORE, archivedId);
+        NodeRef nodeRef = new NodeRef(StoreRef.STORE_REF_ARCHIVE_SPACESSTORE, archivedId);
         Rendition rendition = renditions.getRendition(nodeRef, renditionId, parameters);
         return rendition;
     }
@@ -228,7 +228,7 @@ public class DeletedNodesImpl implements DeletedNodes, RecognizedParamsExtractor
     @Override
     public CollectionWithPagingInfo<Rendition> getRenditions(String archivedId, Parameters parameters)
     {
-        NodeRef nodeRef = nodes.validateNode(StoreRef.STORE_REF_ARCHIVE_SPACESSTORE, archivedId);
+        NodeRef nodeRef = new NodeRef(StoreRef.STORE_REF_ARCHIVE_SPACESSTORE, archivedId);
         return renditions.getRenditions(nodeRef, parameters);
     }
 }

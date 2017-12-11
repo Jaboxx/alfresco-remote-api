@@ -251,7 +251,7 @@ public class DeletedNodesTest extends AbstractSingleNetworkSiteTest
     public void testCreateAndPurge() throws Exception
     {
         setRequestContext(user1);
-        
+
         Date now = new Date();
         String folder1 = "folder" + now.getTime() + "_1";
         Folder createdFolder = createFolder(tDocLibNodeId, folder1, null);
@@ -371,12 +371,24 @@ public class DeletedNodesTest extends AbstractSingleNetworkSiteTest
         headers = Collections.singletonMap(IF_MODIFIED_SINCE_HEADER, lastModifiedHeader);
         // Test 304 response
         getSingle(URL_DELETED_NODES + "/" + contentNodeId + "/content", null, null, headers, 304);
+
+        // -ve - nodeId in the path parameter does not exist
+        getSingle(TrashcanEntityResource.class, UUID.randomUUID().toString() + "/content", params, 404);
+
+        // -ve test - Authentication failed
+        setRequestContext(null);
+        getSingle(TrashcanEntityResource.class, contentNodeId + "/content", params, 401);
+
+        // -ve - Current user does not have permission for nodeId
+        setRequestContext(user2);
+        getSingle(TrashcanEntityResource.class, contentNodeId + "/content", params, 403);
     }
 
     /**
      * Test retrieve renditions for deleted nodes
      * <p>post:</p>
      * {@literal <host>:<port>/alfresco/api/-default-/public/alfresco/versions/1/deleted-nodes/<nodeId>/renditions}
+     * {@literal <host>:<port>/alfresco/api/-default-/public/alfresco/versions/1/deleted-nodes/<nodeId>/rendition/<renditionId>}
      */
     @Test
     public void testListRenditions() throws Exception
@@ -525,7 +537,6 @@ public class DeletedNodesTest extends AbstractSingleNetworkSiteTest
     @Test
     public void testDownloadRendition() throws Exception
     {
-
         setRequestContext(user1);
 
         // Create a folder within the site document's library
@@ -583,17 +594,8 @@ public class DeletedNodesTest extends AbstractSingleNetworkSiteTest
         assertNotNull(contentType);
         assertTrue(contentType.startsWith(MimetypeMap.MIMETYPE_IMAGE_PNG));
 
-        // Test 304 response - placeholder=true&attachment=false
-        String lastModifiedHeader = responseHeaders.get(LAST_MODIFIED_HEADER);
-        assertNotNull(lastModifiedHeader);
-        Map<String, String> headers = Collections.singletonMap(IF_MODIFIED_SINCE_HEADER, lastModifiedHeader);
-        // Currently the placeholder file is not cached.
-        // As the placeholder is not a NodeRef, so we can't get the
-        // ContentModel.PROP_MODIFIED date.
-        getSingle(getDeletedNodeRenditionsUrl(contentNodeId), "doclib/content", params, headers, 200);
-
+        // restore the node and create 'doclib' rendition
         post(URL_DELETED_NODES + "/" + contentNodeId + "/restore", null, null, 200);
-        // Create and get 'doclib' rendition
         rendition = createAndGetRendition(contentNodeId, "doclib");
         assertNotNull(rendition);
         assertEquals(Rendition.RenditionStatus.CREATED, rendition.getStatus());
@@ -631,8 +633,6 @@ public class DeletedNodesTest extends AbstractSingleNetworkSiteTest
         assertNotNull(response.getResponseAsBytes());
         responseHeaders = response.getHeaders();
         assertNotNull(responseHeaders);
-        // Check the cache settings which have been set in the
-        // RenditionsImpl#getContent()
         cacheControl = responseHeaders.get("Cache-Control");
         assertNotNull(cacheControl);
         assertFalse(cacheControl.contains("must-revalidate"));
@@ -645,9 +645,9 @@ public class DeletedNodesTest extends AbstractSingleNetworkSiteTest
         assertTrue(contentType.startsWith(MimetypeMap.MIMETYPE_IMAGE_PNG));
 
         // Test 304 response - doclib rendition (attachment=true)
-        lastModifiedHeader = responseHeaders.get(LAST_MODIFIED_HEADER);
+        String lastModifiedHeader = responseHeaders.get(LAST_MODIFIED_HEADER);
         assertNotNull(lastModifiedHeader);
-        headers = Collections.singletonMap(IF_MODIFIED_SINCE_HEADER, lastModifiedHeader);
+        Map<String, String> headers = Collections.singletonMap(IF_MODIFIED_SINCE_HEADER, lastModifiedHeader);
         getSingle(getDeletedNodeRenditionsUrl(contentNodeId), "doclib/content", params, headers, 304);
 
         // -ve tests
