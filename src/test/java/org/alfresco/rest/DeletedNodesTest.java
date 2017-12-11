@@ -400,6 +400,7 @@ public class DeletedNodesTest extends AbstractSingleNetworkSiteTest
         Document document = RestApiUtil.parseRestApiEntry(response.getJsonResponse(), Document.class);
         String contentNodeId = document.getId();
 
+        // create doclib rendition and move node to trashcan
         createAndGetRendition(contentNodeId, "doclib");
         deleteNode(contentNodeId);
 
@@ -409,7 +410,7 @@ public class DeletedNodesTest extends AbstractSingleNetworkSiteTest
         List<Rendition> renditions = RestApiUtil.parseRestApiEntries(response.getJsonResponse(), Rendition.class);
         assertTrue(renditions.size() >= 3);
 
-        // +ve test - Create 'doclib' rendition and check status and content
+        // +ve test - get previously created 'doclib' rendition
         response = getSingle(getDeletedNodeRenditionsUrl(contentNodeId), "doclib", 200);
         Rendition doclibRendition = RestApiUtil.parseRestApiEntry(response.getJsonResponse(), Rendition.class);
 
@@ -422,22 +423,19 @@ public class DeletedNodesTest extends AbstractSingleNetworkSiteTest
         assertNotNull(contentInfo.getEncoding());
         assertTrue(contentInfo.getSizeInBytes() > 0);
 
-        // Add a filter to select the renditions based on the given status
+        //  +ve test - Add a filter on rendition 'status' and list only 'NOT_CREATED' renditions
         Map<String, String> params = new HashMap<>(1);
         params.put("where", "(status='NOT_CREATED')");
-        // List only the NOT_CREATED renditions
         response = getAll(getDeletedNodeRenditionsUrl(contentNodeId), paging, params, 200);
         renditions = RestApiUtil.parseRestApiEntries(response.getJsonResponse(), Rendition.class);
         assertTrue(renditions.size() >= 2);
 
-        // List only the CREATED renditions
+        //  +ve test - Add a filter on rendition 'status' and list only the CREATED renditions
         params.put("where", "(status='CREATED')");
-        // List only the CREATED renditions
         response = getAll(getDeletedNodeRenditionsUrl(contentNodeId), paging, params, 200);
         renditions = RestApiUtil.parseRestApiEntries(response.getJsonResponse(), Rendition.class);
         assertEquals("Only 'doclib' rendition should be returned.", 1, renditions.size());
 
-        // Test paging
         // SkipCount=0,MaxItems=2
         paging = getPaging(0, 2);
         // List all available renditions
@@ -467,36 +465,56 @@ public class DeletedNodesTest extends AbstractSingleNetworkSiteTest
         response = getAll(getDeletedNodeRenditionsUrl(contentNodeId), paging, params, 200);
         renditions = RestApiUtil.parseRestApiEntries(response.getJsonResponse(), Rendition.class);
         assertTrue(Ordering.natural().isOrdered(renditions));
-        // Try again to make sure the ordering wasn't coincidental
+        // Check again to make sure the ordering wasn't coincidental
         response = getAll(getDeletedNodeRenditionsUrl(contentNodeId), paging, params, 200);
         renditions = RestApiUtil.parseRestApiEntries(response.getJsonResponse(), Rendition.class);
         assertTrue(Ordering.natural().isOrdered(renditions));
 
         // -ve - nodeId in the path parameter does not represent a file
-        getAll(URL_DELETED_NODES + "/" + f1Id + "/renditions", paging, params, 404);
+        getAll(getDeletedNodeRenditionsUrl(f1Id), paging, params, 404);
 
         // -ve - nodeId in the path parameter does not exist
-        getAll(URL_DELETED_NODES + "/" + UUID.randomUUID().toString() + "/renditions", paging, params, 404);
+        getAll(getDeletedNodeRenditionsUrl(UUID.randomUUID().toString()), paging, params, 404);
 
         // -ve test - Create an empty text file
         Document emptyDoc = createEmptyTextFile(f1Id, "d1.txt");
-        getAll(URL_DELETED_NODES + "/" + emptyDoc.getId() + "/renditions", paging, params, 404);
+        getAll(getDeletedNodeRenditionsUrl(emptyDoc.getId()), paging, params, 404);
 
         // -ve - Invalid status value
         params.put("where", "(status='WRONG')");
-        getAll(URL_DELETED_NODES + "/" + contentNodeId + "/renditions", paging, params, 400);
+        getAll(getDeletedNodeRenditionsUrl(contentNodeId), paging, params, 400);
 
         // -ve - Invalid filter (only 'status' is supported)
         params.put("where", "(id='doclib')");
-        getAll(URL_DELETED_NODES + "/" + contentNodeId + "/renditions", paging, params, 400);
+        getAll(getDeletedNodeRenditionsUrl(contentNodeId), paging, params, 400);
 
         // -ve test - Authentication failed
         setRequestContext(null);
-        response = getAll(URL_DELETED_NODES + "/" + contentNodeId + "/renditions", paging, params, 401);
+        getAll(getDeletedNodeRenditionsUrl(contentNodeId), paging, params, 401);
 
         // -ve - Current user does not have permission for nodeId
         setRequestContext(user2);
-        response = getAll(URL_DELETED_NODES + "/" + contentNodeId + "/renditions", paging, params, 403);
+        getAll(getDeletedNodeRenditionsUrl(contentNodeId), paging, params, 403);
+
+
+        setRequestContext(user1);
+        // Test get single node rendition
+        // -ve - nodeId in the path parameter does not exist
+        getSingle(getDeletedNodeRenditionsUrl(UUID.randomUUID().toString()), "doclib", 404);
+
+        // -ve - renditionId in the path parameter is not registered/available
+        getSingle(getNodeRenditionsUrl(contentNodeId), ("renditionId" + System.currentTimeMillis()), 404);
+
+        // -ve - nodeId in the path parameter does not represent a file
+        getSingle(getDeletedNodeRenditionsUrl(f1Id), "doclib", 404);
+
+        // -ve test - Authentication failed
+        setRequestContext(null);
+        getSingle(getDeletedNodeRenditionsUrl(contentNodeId), "doclib", 401);
+
+        // -ve - Current user does not have permission for nodeId
+        setRequestContext(user2);
+        getSingle(getDeletedNodeRenditionsUrl(contentNodeId), "doclib", 403);
     }
 
     /**
@@ -517,7 +535,7 @@ public class DeletedNodesTest extends AbstractSingleNetworkSiteTest
         assertNotNull(createdFolder);
         String f1Id = createdFolder.getId();
 
-        // Create multipart request
+        // Create multipart request using an existing file
         String fileName = "quick.pdf";
         File file = getResourceFile(fileName);
         MultiPartBuilder multiPartBuilder = MultiPartBuilder.create().setFileData(new MultiPartBuilder.FileData(fileName, file));
@@ -528,12 +546,9 @@ public class DeletedNodesTest extends AbstractSingleNetworkSiteTest
         Document document = RestApiUtil.parseRestApiEntry(response.getJsonResponse(), Document.class);
         String contentNodeId = document.getId();
 
-        // pause briefly
-        Thread.sleep(500);
-
         deleteNode(contentNodeId);
 
-        // Get rendition (not created yet) information for node
+        // Get rendition (not created yet) information
         response = getSingle(getDeletedNodeRenditionsUrl(contentNodeId), "doclib", 200);
         Rendition rendition = RestApiUtil.parseRestApiEntry(response.getJsonResponse(), Rendition.class);
         assertNotNull(rendition);

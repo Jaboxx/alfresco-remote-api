@@ -72,23 +72,13 @@ public interface Renditions
 
     /**
      * Creates a rendition for the given node - either async r sync
-     * 
+     *
      * @param nodeRef
      * @param rendition
      * @param executeAsync
      * @param parameters
      */
     void createRendition(NodeRef nodeRef, Rendition rendition, boolean executeAsync, Parameters parameters);
-
-    /**
-     * Downloads rendition.
-     *
-     * @param nodeId      the source node id
-     * @param renditionId the rendition id
-     * @param parameters  the {@link Parameters} object to get the parameters passed into the request
-     * @return the rendition stream
-     */
-    BinaryResource getContent(String nodeId, String renditionId, Parameters parameters);
 
     /**
      * Downloads rendition.

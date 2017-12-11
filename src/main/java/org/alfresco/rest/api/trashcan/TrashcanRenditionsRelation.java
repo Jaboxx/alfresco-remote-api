@@ -61,7 +61,7 @@ public class TrashcanRenditionsRelation
 
     @WebApiDescription(title = "Retrieve rendition information", description = "Retrieve (created) rendition information")
     @Override
-    public Rendition readById(String nodeId, String renditionId, Parameters parameters) throws RelationshipResourceNotFoundException
+    public Rendition readById(String nodeId, String renditionId, Parameters parameters)
     {
         return deletedNodes.getRendition(nodeId, renditionId, parameters);
     }
@@ -69,7 +69,7 @@ public class TrashcanRenditionsRelation
     @WebApiDescription(title = "Download archived node rendition", description = "Download rendition for an archived node")
     @BinaryProperties({ "content" })
     @Override
-    public BinaryResource readProperty(String nodeId, String renditionId, Parameters parameters) throws EntityNotFoundException
+    public BinaryResource readProperty(String nodeId, String renditionId, Parameters parameters)
     {
         return deletedNodes.readProperty(nodeId, renditionId, parameters);
     }
