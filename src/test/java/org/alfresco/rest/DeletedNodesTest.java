@@ -559,19 +559,23 @@ public class DeletedNodesTest extends AbstractSingleNetworkSiteTest
         HttpResponse response = post(getNodeChildrenUrl(f1Id), reqBody.getBody(), null, reqBody.getContentType(), 201);
         Document document = RestApiUtil.parseRestApiEntry(response.getJsonResponse(), Document.class);
         String contentNodeId = document.getId();
-
+        
+        Rendition rendition = createAndGetRendition(contentNodeId, "doclib");
+        assertNotNull(rendition);
+        assertEquals(Rendition.RenditionStatus.CREATED, rendition.getStatus());
         deleteNode(contentNodeId);
 
         // Get rendition (not created yet) information
         response = getSingle(getDeletedNodeRenditionsUrl(contentNodeId), "doclib", 200);
-        Rendition rendition = RestApiUtil.parseRestApiEntry(response.getJsonResponse(), Rendition.class);
+        rendition = RestApiUtil.parseRestApiEntry(response.getJsonResponse(), Rendition.class);
         assertNotNull(rendition);
-        assertEquals(Rendition.RenditionStatus.NOT_CREATED, rendition.getStatus());
+        assertEquals(Rendition.RenditionStatus.CREATED, rendition.getStatus());
+        
+        Thread.sleep(DELAY_IN_MS);
+        
 
-        // Download placeholder - by default with Content-Disposition header
-        Map<String, String> params = new HashMap<>();
-        params.put("placeholder", "true");
-        response = getSingle(getDeletedNodeRenditionsUrl(contentNodeId), ("doclib/content"), params, 200);
+        // Download rendition - by default with Content-Disposition header
+        response = getSingle(getDeletedNodeRenditionsUrl(contentNodeId), "doclib/content", 200);
         assertNotNull(response.getResponseAsBytes());
         Map<String, String> responseHeaders = response.getHeaders();
         assertNotNull(responseHeaders);
@@ -582,46 +586,9 @@ public class DeletedNodesTest extends AbstractSingleNetworkSiteTest
         assertNotNull(contentType);
         assertTrue(contentType.startsWith(MimetypeMap.MIMETYPE_IMAGE_PNG));
 
-        // Download placeholder - without Content-Disposition header
-        // (attachment=false)
-        params.put("attachment", "false");
-        response = getSingle(getDeletedNodeRenditionsUrl(contentNodeId), ("doclib/content"), params, 200);
-        assertNotNull(response.getResponseAsBytes());
-        responseHeaders = response.getHeaders();
-        assertNotNull(responseHeaders);
-        String cacheControl = responseHeaders.get("Cache-Control");
-        assertNotNull(cacheControl);
-        assertTrue(cacheControl.contains("must-revalidate"));
-        assertNull(responseHeaders.get("Content-Disposition"));
-        contentType = responseHeaders.get("Content-Type");
-        assertNotNull(contentType);
-        assertTrue(contentType.startsWith(MimetypeMap.MIMETYPE_IMAGE_PNG));
-
-        // restore the node and create 'doclib' rendition
-        post(URL_DELETED_NODES + "/" + contentNodeId + "/restore", null, null, 200);
-        rendition = createAndGetRendition(contentNodeId, "doclib");
-        assertNotNull(rendition);
-        assertEquals(Rendition.RenditionStatus.CREATED, rendition.getStatus());
-        
-        Thread.sleep(DELAY_IN_MS);
-        
-        // delete the node again
-        deleteNode(contentNodeId);
-
-        // Download rendition - by default with Content-Disposition header
-        response = getSingle(getDeletedNodeRenditionsUrl(contentNodeId), "doclib/content", 200);
-        assertNotNull(response.getResponseAsBytes());
-        responseHeaders = response.getHeaders();
-        assertNotNull(responseHeaders);
-        contentDisposition = responseHeaders.get("Content-Disposition");
-        assertNotNull(contentDisposition);
-        assertTrue(contentDisposition.contains("filename=\"doclib\""));
-        contentType = responseHeaders.get("Content-Type");
-        assertNotNull(contentType);
-        assertTrue(contentType.startsWith(MimetypeMap.MIMETYPE_IMAGE_PNG));
-
         // Download rendition - without Content-Disposition header
         // (attachment=false)
+        Map<String, String> params = new HashMap<>();
         params = Collections.singletonMap("attachment", "false");
         response = getSingle(getDeletedNodeRenditionsUrl(contentNodeId), "doclib/content", params, 200);
         assertNotNull(response.getResponseAsBytes());
@@ -639,7 +606,7 @@ public class DeletedNodesTest extends AbstractSingleNetworkSiteTest
         assertNotNull(response.getResponseAsBytes());
         responseHeaders = response.getHeaders();
         assertNotNull(responseHeaders);
-        cacheControl = responseHeaders.get("Cache-Control");
+        String cacheControl = responseHeaders.get("Cache-Control");
         assertNotNull(cacheControl);
         assertFalse(cacheControl.contains("must-revalidate"));
         assertTrue(cacheControl.contains("max-age=31536000"));
