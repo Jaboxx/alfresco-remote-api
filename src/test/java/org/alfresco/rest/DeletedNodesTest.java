@@ -75,6 +75,8 @@ public class DeletedNodesTest extends AbstractSingleNetworkSiteTest
     protected static final String URL_DELETED_NODES = "deleted-nodes";
     private static final String URL_RENDITIONS = "renditions";
 
+    private final static long DELAY_IN_MS = 500;
+    
     @Override
     public void setup() throws Exception
     {
@@ -414,6 +416,7 @@ public class DeletedNodesTest extends AbstractSingleNetworkSiteTest
 
         // create doclib rendition and move node to trashcan
         createAndGetRendition(contentNodeId, "doclib");
+        Thread.sleep(DELAY_IN_MS);
         deleteNode(contentNodeId);
 
         // List all renditions and check for results
@@ -599,6 +602,9 @@ public class DeletedNodesTest extends AbstractSingleNetworkSiteTest
         rendition = createAndGetRendition(contentNodeId, "doclib");
         assertNotNull(rendition);
         assertEquals(Rendition.RenditionStatus.CREATED, rendition.getStatus());
+        
+        Thread.sleep(DELAY_IN_MS);
+        
         // delete the node again
         deleteNode(contentNodeId);
 

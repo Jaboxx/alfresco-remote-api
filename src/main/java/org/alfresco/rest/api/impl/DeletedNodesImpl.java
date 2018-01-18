@@ -202,7 +202,7 @@ public class DeletedNodesImpl implements DeletedNodes, RecognizedParamsExtractor
     }
 
     @Override
-    public BinaryResource readProperty(String archivedId, String renditionId, Parameters parameters)
+    public BinaryResource getContent(String archivedId, String renditionId, Parameters parameters)
     {
         // First check if the archived node is valid
         NodeRef validatedNodeRef = nodes.validateNode(StoreRef.STORE_REF_ARCHIVE_SPACESSTORE, archivedId);

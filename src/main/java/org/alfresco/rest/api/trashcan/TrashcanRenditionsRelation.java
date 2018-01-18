@@ -71,7 +71,7 @@ public class TrashcanRenditionsRelation
     @Override
     public BinaryResource readProperty(String nodeId, String renditionId, Parameters parameters)
     {
-        return deletedNodes.readProperty(nodeId, renditionId, parameters);
+        return deletedNodes.getContent(nodeId, renditionId, parameters);
     }
 
     @Override

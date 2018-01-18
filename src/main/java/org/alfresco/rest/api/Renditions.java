@@ -89,5 +89,15 @@ public interface Renditions
      * @return the rendition stream
      */
     BinaryResource getContent(NodeRef sourceNodeRef, String renditionId, Parameters parameters);
+
+    /**
+     * Downloads rendition.
+     *
+     * @param sourceNodeRef the source nodeRef
+     * @param renditionId   the rendition id
+     * @param parameters    the {@link Parameters} object to get the parameters passed into the request
+     * @return the rendition stream
+     */
+    BinaryResource getContentNoValidation(NodeRef sourceNodeRef, String renditionId, Parameters parameters);
 }
 

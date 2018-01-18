@@ -82,7 +82,7 @@ public interface DeletedNodes
      *            {@link Parameters}
      * @return
      */
-    BinaryResource readProperty(String archivedId, String renditionId, Parameters parameters);
+    BinaryResource getContent(String archivedId, String renditionId, Parameters parameters);
 
     /**
      * @param archivedId

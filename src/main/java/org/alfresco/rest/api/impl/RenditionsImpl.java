@@ -305,10 +305,16 @@ public class RenditionsImpl implements Renditions, ResourceLoaderAware
     }
 
     @Override
-    public BinaryResource getContent(NodeRef sourceNodeRef, String renditionId, Parameters parameters)
+    public BinaryResource getContent(NodeRef nodeRef, String renditionId, Parameters parameters)
     {
-        final NodeRef validatedNodeRef = validateNode(sourceNodeRef.getStoreRef(), sourceNodeRef.getId());
-        NodeRef renditionNodeRef = getRenditionByName(validatedNodeRef, renditionId, parameters);
+        final NodeRef validatedNodeRef = validateNode(nodeRef.getStoreRef(), nodeRef.getId());
+        return getContentNoValidation(validatedNodeRef, renditionId, parameters);
+    }
+
+    @Override
+    public BinaryResource getContentNoValidation(NodeRef sourceNodeRef, String renditionId, Parameters parameters)
+    {
+        NodeRef renditionNodeRef = getRenditionByName(sourceNodeRef, renditionId, parameters);
 
         // By default set attachment header (with rendition Id) unless attachment=false
         boolean attach = true;

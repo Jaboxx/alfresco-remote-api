@@ -82,7 +82,7 @@ public class TrashcanEntityResource implements
     @BinaryProperties({ "content" })
     public BinaryResource readProperty(String nodeId, Parameters parameters)
     {
-        return deletedNodes.readProperty(nodeId, null, parameters);
+        return deletedNodes.getContent(nodeId, null, parameters);
     }
 
     @Override
