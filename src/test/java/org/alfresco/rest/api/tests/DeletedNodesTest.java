@@ -23,7 +23,7 @@
  * along with Alfresco. If not, see <http://www.gnu.org/licenses/>.
  * #L%
  */
-package org.alfresco.rest;
+package org.alfresco.rest.api.tests;
 
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
@@ -44,6 +44,7 @@ import java.util.Map;
 import java.util.UUID;
 
 import org.alfresco.repo.content.MimetypeMap;
+import org.alfresco.rest.AbstractSingleNetworkSiteTest;
 import org.alfresco.rest.api.Nodes;
 import org.alfresco.rest.api.tests.client.HttpResponse;
 import org.alfresco.rest.api.tests.client.PublicApiClient;
@@ -415,7 +416,8 @@ public class DeletedNodesTest extends AbstractSingleNetworkSiteTest
         String contentNodeId = document.getId();
 
         // create doclib rendition and move node to trashcan
-        createAndGetRendition(contentNodeId, "doclib");
+        Rendition rend = createAndGetRendition(contentNodeId, "doclib");
+        assertNotNull(rend);
         Thread.sleep(DELAY_IN_MS);
         deleteNode(contentNodeId);
 
