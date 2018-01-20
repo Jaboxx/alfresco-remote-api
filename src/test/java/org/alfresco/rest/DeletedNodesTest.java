@@ -23,7 +23,7 @@
  * along with Alfresco. If not, see <http://www.gnu.org/licenses/>.
  * #L%
  */
-package org.alfresco.rest.api.tests;
+package org.alfresco.rest;
 
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
@@ -416,9 +416,7 @@ public class DeletedNodesTest extends AbstractSingleNetworkSiteTest
         String contentNodeId = document.getId();
 
         // create doclib rendition and move node to trashcan
-        Rendition rend = createAndGetRendition(contentNodeId, "doclib");
-        assertNotNull(rend);
-        Thread.sleep(DELAY_IN_MS);
+        createAndGetRendition(contentNodeId, "doclib");
         deleteNode(contentNodeId);
 
         // List all renditions and check for results
@@ -566,15 +564,6 @@ public class DeletedNodesTest extends AbstractSingleNetworkSiteTest
         assertNotNull(rendition);
         assertEquals(Rendition.RenditionStatus.CREATED, rendition.getStatus());
         deleteNode(contentNodeId);
-
-        // Get rendition (not created yet) information
-        response = getSingle(getDeletedNodeRenditionsUrl(contentNodeId), "doclib", 200);
-        rendition = RestApiUtil.parseRestApiEntry(response.getJsonResponse(), Rendition.class);
-        assertNotNull(rendition);
-        assertEquals(Rendition.RenditionStatus.CREATED, rendition.getStatus());
-        
-        Thread.sleep(DELAY_IN_MS);
-        
 
         // Download rendition - by default with Content-Disposition header
         response = getSingle(getDeletedNodeRenditionsUrl(contentNodeId), "doclib/content", 200);

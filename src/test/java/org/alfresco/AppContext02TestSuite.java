@@ -42,7 +42,7 @@ import org.junit.runners.Suite;
     org.alfresco.rest.api.tests.TestCMIS.class,
 
     org.alfresco.rest.api.tests.TestCustomModelExport.class,
-    org.alfresco.rest.api.tests.DeletedNodesTest.class,
+    org.alfresco.rest.DeletedNodesTest.class,
     org.alfresco.rest.api.search.BasicSearchApiIntegrationTest.class,
     org.alfresco.rest.api.tests.ActivitiesPostingTest.class,
     org.alfresco.rest.api.tests.AuthenticationsTest.class,

@@ -26,6 +26,7 @@
 package org.alfresco.rest.api.tests;
 
 
+import org.alfresco.rest.DeletedNodesTest;
 import org.alfresco.rest.api.search.BasicSearchApiIntegrationTest;
 import org.junit.AfterClass;
 import org.junit.runner.RunWith;
